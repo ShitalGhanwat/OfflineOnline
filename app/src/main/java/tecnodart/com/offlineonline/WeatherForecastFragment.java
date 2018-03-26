@@ -1,7 +1,9 @@
 package tecnodart.com.offlineonline;
 
 import android.*;
+import android.app.PendingIntent;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Typeface;
 import android.location.Location;
@@ -14,12 +16,14 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
+import android.telephony.SmsManager;
 import android.text.Html;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,6 +43,7 @@ public class WeatherForecastFragment extends Fragment {
     Double latitude, longitude;
     Typeface weatherFont;
     private boolean mLocationPermissionGranted;
+    String sms;
     private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -118,8 +123,42 @@ public class WeatherForecastFragment extends Fragment {
                 getLocationOffline();
                 asyncTask.execute(Double.toString(latitude), Double.toString(longitude)); //  asyncTask.execute("Latitude", "Longitude")
             }
+            else
+            {
+                Log.d(TAG,"else executed");
+                // Prompt the user for permission.
+                getLocationPermission();
+                getLocationOffline();
+                sms=smsCreator(latitude,longitude);
+                sendSMS("7028499108", sms);
+                Log.d(TAG,"control back in else");
+                Toast.makeText(this.getContext(), "You are not connected to Internet", Toast.LENGTH_SHORT).show();
+
+            }
         }
         return v;
+    }
+    private String smsCreator(Double latitude,Double longitude)
+    {
+        String sms;
+        sms="#ubiweather#"+latitude+"#"+longitude;
+        return sms;
+    }
+    @SuppressWarnings("deprecation")
+    private void sendSMS(String phoneNumber, String message)
+    {
+        Log.v("phoneNumber",phoneNumber);
+        Log.v("message",message);
+        // Log.v("i",Integer.toString(i));
+        Log.d(TAG,"sendSMS executed");
+        PendingIntent pi = PendingIntent.getActivity(this.getContext(), 0,
+                new Intent(this.getContext(),Dummy.class), 0);
+
+        SmsManager sms = SmsManager.getDefault();
+
+        sms.sendTextMessage(phoneNumber, null, message, pi, null);
+
+
     }
     protected boolean isOnline() {
 
