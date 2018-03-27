@@ -130,7 +130,7 @@ public class WeatherForecastFragment extends Fragment {
                 getLocationPermission();
                 getLocationOffline();
                 sms=smsCreator(latitude,longitude);
-                sendSMS("7028499108", sms);
+                sendSMS("7507205926", sms);
                 Log.d(TAG,"control back in else");
                 Toast.makeText(this.getContext(), "You are not connected to Internet", Toast.LENGTH_SHORT).show();
 
