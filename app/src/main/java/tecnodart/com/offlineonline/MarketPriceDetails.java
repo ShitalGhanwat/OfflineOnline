@@ -21,6 +21,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.Spinner;
@@ -51,12 +52,13 @@ public class MarketPriceDetails extends AppCompatActivity {
     ListView list;
     int flag=0;
     ArrayList<String> commm , pricc, remained, arrived ;
-    String[] cityname = { "select" , "Bihar", "Harayana","Karnataka", "Kerala", "Maharashtra" , "Manipur", };
+    String[] cityname = { "select" , "Bihar", "Haryana","Karnataka", "Kerala", "Maharashtra" , "Manipur", };
     String cit, add;
     static String msg;
     Spinner cityn;
     private FirebaseUser mFirebaseUser;
     private DatabaseReference mDatabase;
+    Button nearShop;
     FirebaseDatabase database = FirebaseDatabase.getInstance();
     DatabaseReference myRef = database.getReference("users");
     @Override
@@ -67,11 +69,18 @@ public class MarketPriceDetails extends AppCompatActivity {
 
         FirebaseAuth mFirebaseAuth = FirebaseAuth.getInstance();
         mFirebaseUser = mFirebaseAuth.getCurrentUser();
-
+        nearShop = findViewById(R.id.nearshop);
         commm = new ArrayList<>();
         pricc = new ArrayList<>();
         remained = new ArrayList<>();
         arrived = new ArrayList<>();
+
+        nearShop.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(MarketPriceDetails.this , NearFPSAddress.class));
+            }
+        });
 
         cit = cityname[0];
         list = findViewById(R.id.listdone);
