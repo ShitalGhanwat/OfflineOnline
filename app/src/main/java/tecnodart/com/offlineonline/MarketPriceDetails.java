@@ -21,6 +21,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.Spinner;
@@ -51,12 +52,13 @@ public class MarketPriceDetails extends AppCompatActivity {
     ListView list;
     int flag=0;
     ArrayList<String> commm , pricc, remained, arrived ;
-    String[] cityname = { "nagpur", "pune", };
+    String[] cityname = { "select" , "Bihar", "Haryana","Karnataka", "Kerala", "Maharashtra" , "Manipur", };
     String cit, add;
     static String msg;
     Spinner cityn;
     private FirebaseUser mFirebaseUser;
     private DatabaseReference mDatabase;
+    Button nearShop;
     FirebaseDatabase database = FirebaseDatabase.getInstance();
     DatabaseReference myRef = database.getReference("users");
     @Override
@@ -67,11 +69,18 @@ public class MarketPriceDetails extends AppCompatActivity {
 
         FirebaseAuth mFirebaseAuth = FirebaseAuth.getInstance();
         mFirebaseUser = mFirebaseAuth.getCurrentUser();
-
+        nearShop = findViewById(R.id.nearshop);
         commm = new ArrayList<>();
         pricc = new ArrayList<>();
         remained = new ArrayList<>();
         arrived = new ArrayList<>();
+
+        nearShop.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(MarketPriceDetails.this , NearFPSAddress.class));
+            }
+        });
 
         cit = cityname[0];
         list = findViewById(R.id.listdone);
@@ -87,9 +96,15 @@ public class MarketPriceDetails extends AppCompatActivity {
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
                 //Toast.makeText(EducationDetailUpload.this, boardname[i], Toast.LENGTH_LONG).show();
                 cit = cityname[i];
+                if(cit.equals("select")){
+                    return;
+                }
                 mDatabase= FirebaseDatabase.getInstance().getReference().child("fareprice").child(cit);
-
-                ca = new customadapter(MarketPriceDetails.this, commm,pricc, remained );
+                commm.clear();
+                pricc.clear();
+                remained.clear();
+                arrived.clear();
+                ca = new customadapter(MarketPriceDetails.this, commm,pricc, remained , arrived);
 
                dialog = ProgressDialog.show(MarketPriceDetails.this, "",
                         "Loading. Please wait...", true);
@@ -105,7 +120,7 @@ public class MarketPriceDetails extends AppCompatActivity {
                         pricc.clear();
                         remained.clear();
                         arrived.clear();
-                        ca.add(pricc , commm, remained);
+                        ca.add(pricc , commm, remained, arrived);
                             for(DataSnapshot gr:dataSnapshot.getChildren()) {
                                 // String useridstr = usrid.getKey();
 
@@ -118,7 +133,7 @@ public class MarketPriceDetails extends AppCompatActivity {
                                 }
                             }
                         dialog.dismiss();
-                        ca = new customadapter(MarketPriceDetails.this, commm,pricc, remained );
+                        ca = new customadapter(MarketPriceDetails.this, commm,pricc, remained , arrived);
                         list.setAdapter(ca);
                     }
 
@@ -159,7 +174,7 @@ public class MarketPriceDetails extends AppCompatActivity {
                 pricc.clear();
                 remained.clear();
                 arrived.clear();
-                ca.add(pricc , commm, remained);
+                ca.add(pricc , commm, remained, arrived);
                 String[] arr = message.split(" " );
 
                 for(int j=2,k=3,l=4,m=5 ;j< arr.length; j=j+5,k=k+5,l=l+5,m=m+5 ){
@@ -171,7 +186,7 @@ public class MarketPriceDetails extends AppCompatActivity {
 
 
                 }
-                ca = new customadapter(MarketPriceDetails.this, commm,pricc, remained );
+                ca = new customadapter(MarketPriceDetails.this, commm,pricc, remained , arrived);
                 list.setAdapter(ca);
 
 
@@ -213,15 +228,16 @@ public class MarketPriceDetails extends AppCompatActivity {
         private LayoutInflater inflater;
         private ArrayList<String> commodity;
         private ArrayList<String> quantity;
+        private ArrayList<String> arrived;
         private ArrayList<String> price;
 
 
 
-        public void add(ArrayList<String> prices, ArrayList<String> commoditys, ArrayList<String> quantitys) {
+        public void add(ArrayList<String> prices, ArrayList<String> commoditys, ArrayList<String> quantitys, ArrayList<String> arriveds) {
             this.commodity = commoditys;
             this.price= prices;
             this.quantity=quantitys;
-
+            this.arrived = arriveds;
             notifyDataSetChanged();
         }
 
@@ -239,11 +255,12 @@ public class MarketPriceDetails extends AppCompatActivity {
             return commodity.get(i);
         }
 
-        public customadapter(Context context, ArrayList<String> commodity,ArrayList<String> quantity,ArrayList<String> price) {
+        public customadapter(Context context, ArrayList<String> commodity,ArrayList<String> quantity,ArrayList<String> price, ArrayList<String> arrived) {
             this.context = context;
             this.commodity = commodity;
             this.price= price;
             this.quantity=quantity;
+            this.arrived=arrived;
             //line 31
             inflater = (LayoutInflater) this.context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         }
@@ -262,6 +279,9 @@ public class MarketPriceDetails extends AppCompatActivity {
         }
         public Object getQuantity(int position) {
             return quantity.get(position);
+        }
+        public Object getArrived(int position) {
+            return arrived.get(position);
         }
 
         @SuppressLint("ViewHolder")
@@ -284,9 +304,11 @@ public class MarketPriceDetails extends AppCompatActivity {
 */
             TextView commo = convertview.findViewById(R.id.commodity);
 
-            TextView quan = convertview.findViewById(R.id.quantity);
+            TextView quan = convertview.findViewById(R.id.remained);
             TextView pri = convertview.findViewById(R.id.price);
+            TextView arr = convertview.findViewById(R.id.arrived);
 
+            arr.setText((String)getArrived(position));
             commo.setText((String)getCommodity(position));
             pri.setText((String)getPrice(position));
             quan.setText((String)getQuantity(position));

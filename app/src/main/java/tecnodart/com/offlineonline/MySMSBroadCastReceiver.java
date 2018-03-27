@@ -6,16 +6,19 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
 import android.telephony.SmsMessage;
+import android.util.Log;
 
 /**
  * Created by ashutosh on 4/1/18.
  */
 
 public class MySMSBroadCastReceiver extends BroadcastReceiver {
+    private static final String TAG="msp";
     @Override
     public void onReceive(Context context, Intent intent)
     {
         // Get Bundle object contained in the SMS intent passed in
+        Log.d(TAG,"UbiQuotes broadcast receiver called");
         Bundle bundle = intent.getExtras();
         SmsMessage[] smsm = null;
         String sms_str ="";

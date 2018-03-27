@@ -1,5 +1,7 @@
 package tecnodart.com.offlineonline;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -7,6 +9,7 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
+import android.util.Log;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -16,12 +19,15 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.TextView;
 
 import com.google.firebase.messaging.FirebaseMessaging;
 
+import java.util.List;
+
 
 public class AfterLoginHome extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, NotificationsFragment.OnFragmentInteractionListener {
+        implements NavigationView.OnNavigationItemSelectedListener, NotificationsFragment.OnFragmentInteractionListener,WeatherForecastFragment.OnFragmentInteractionListener {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -100,7 +106,12 @@ public class AfterLoginHome extends AppCompatActivity
         } else if (id == R.id.e_mandi) {
             startActivity(new Intent(AfterLoginHome.this , MarketPriceDetails.class));
 
-        } else if (id == R.id.share) {
+        }
+        else if(id==R.id.weather_forecast)
+        {
+            f=new WeatherForecastFragment();
+        }
+        else if (id == R.id.share) {
 
             try {
                 Intent sh = new Intent(Intent.ACTION_SEND);

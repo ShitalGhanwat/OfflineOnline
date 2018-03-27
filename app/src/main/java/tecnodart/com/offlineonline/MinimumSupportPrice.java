@@ -4,8 +4,10 @@ package tecnodart.com.offlineonline;
 import android.*;
 import android.Manifest;
 import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationManager;
@@ -17,6 +19,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.content.LocalBroadcastManager;
 import android.telephony.SmsManager;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -194,8 +197,36 @@ public class MinimumSupportPrice extends Fragment implements AdapterView.OnItemS
             sendSMS("7028499108", sms);
             Log.d(TAG,"control back in else");
             Toast.makeText(this.getContext(), "You are not connected to Internet", Toast.LENGTH_SHORT).show();
+
         }
     }
+    private BroadcastReceiver receiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (intent.getAction().equalsIgnoreCase("otp")) {
+                final String message = intent.getStringExtra("message");
+                final String sender = intent.getStringExtra("sender");
+                String s = message;
+                String[] words = s.split("#");
+                for (int i = 0; i < words.length; i++) {
+                    // You may want to check for a non-word character before blindly
+                    // performing a replacement
+                    // It may also be necessary to adjust the character class
+                   // words[i] = words[i].replaceAll("[^\\w]", "");
+                    Log.d(TAG,"words["+i+"]="+words[i]);
+                }
+                if(words[1].equalsIgnoreCase("ubimsp"))
+                {
+
+                    msp=Integer.parseInt(words[2]);
+                    address=words[3];
+                    mspDisplay.setText("₹" + msp + "/quintal");
+                    addressDisplay.setText(address);
+
+                }
+            }
+        }
+    };
     //---sends an SMS message to another device---
     @SuppressWarnings("deprecation")
     private void sendSMS(String phoneNumber, String message)
@@ -237,15 +268,18 @@ public class MinimumSupportPrice extends Fragment implements AdapterView.OnItemS
         Log.d(TAG,"#3");
         try {
             Log.d(TAG,"#4");
+           // lm.requestLocationUpdates();
             net_loc = lm.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
             if(net_loc==null)
             {
                 Log.d(TAG,"net_loc is null");
             }
             Log.d(TAG,"#5");
-            latitude=net_loc.getLatitude();
+          latitude=net_loc.getLatitude();
+           // latitude=18.5614668;
             Log.d(TAG,"#6");
-            longitude=net_loc.getLongitude();
+           longitude=net_loc.getLongitude();
+           // longitude=73.9324918;
             Log.d(TAG,"#7");
         }catch(SecurityException s)
         {
@@ -312,6 +346,11 @@ public class MinimumSupportPrice extends Fragment implements AdapterView.OnItemS
         sms="#ubi#"+commodity+"#"+latitude+"#"+longitude;
         return sms;
     }
-
+    @Override
+    public void onResume() {
+        LocalBroadcastManager.getInstance(this.getContext()).
+                registerReceiver(receiver, new IntentFilter("otp"));
+        super.onResume();
+    }
 
 }
