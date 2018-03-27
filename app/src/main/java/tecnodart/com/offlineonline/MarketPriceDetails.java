@@ -229,7 +229,7 @@ public class MarketPriceDetails extends AppCompatActivity {
                     String msg = "#ubimarket#" + latitude +"#"+longitude;
 
 
-                    sendSMS("9511998927", msg);
+                    sendSMS("8381033796", msg);
                     Toast.makeText(MarketPriceDetails.this, "You are not connected to Internet", Toast.LENGTH_SHORT).show();
 
                 }
@@ -260,7 +260,11 @@ public class MarketPriceDetails extends AppCompatActivity {
                 arrived.clear();
                 ca.add(pricc , commm, remained, arrived);
                 String[] arr = message.split("#" );
-                if(!Objects.equals(arr[1], "ubi")){return;}
+                if(arr[1].equals("ubierror")){
+                    Toast.makeText(MarketPriceDetails.this, "Service not available", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                if(!Objects.equals(arr[1], "ubimarket")){return;}
                 Toast.makeText(MarketPriceDetails.this , arr[2], Toast.LENGTH_SHORT).show();
 
                 for(int j=2,k=3,l=4,m=5 ;j< 15; j=j+4,k=k+4,l=l+4,m=m+4 ){

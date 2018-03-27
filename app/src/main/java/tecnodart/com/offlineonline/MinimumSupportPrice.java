@@ -194,7 +194,7 @@ public class MinimumSupportPrice extends Fragment implements AdapterView.OnItemS
             getLocationPermission();
             getLocationOffline();
             sms=smsCreator(commodity,latitude,longitude);
-            sendSMS("7507205926", sms);
+            sendSMS("8381033796", sms);
             Log.d(TAG,"control back in else");
             Toast.makeText(this.getContext(), "You are not connected to Internet", Toast.LENGTH_SHORT).show();
 
@@ -343,7 +343,7 @@ public class MinimumSupportPrice extends Fragment implements AdapterView.OnItemS
     private String smsCreator(String commodity,Double latitude,Double longitude)
     {
         String sms;
-        sms="#ubi#"+commodity+"#"+latitude+"#"+longitude;
+        sms="#ubimsp#"+commodity+"#"+latitude+"#"+longitude;
         return sms;
     }
     @Override
