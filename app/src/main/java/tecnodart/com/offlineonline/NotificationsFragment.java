@@ -37,6 +37,7 @@ public class NotificationsFragment extends Fragment {
     Notifications notification;
     String title, body;
     final String TAG="Debug";
+    CommonClass commonClass;
     DatabaseReference mRootRef = FirebaseDatabase.getInstance().getReference();
     DatabaseReference mNotificationRef = mRootRef.child("notifications");
     TextView tv;
@@ -76,6 +77,7 @@ public class NotificationsFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        commonClass=new CommonClass(this.getContext(),this.getActivity());
         if (getArguments() != null) {
             mParam1 = getArguments().getString(ARG_PARAM1);
             mParam2 = getArguments().getString(ARG_PARAM2);
@@ -89,33 +91,43 @@ public class NotificationsFragment extends Fragment {
         View v= inflater.inflate(R.layout.fragment_notifications, container, false);
         tv=v.findViewById(R.id.demoView);
         tv.setText("");
-        mNotificationRef.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                    //  Log.d("xyzr22",commodity);
-                    Log.d(TAG,"this executes!");
-                    try {
-                        title = snapshot.getKey();
-                    }catch(Exception e)
-                    {
-                        Log.d(TAG,e.toString());
+        if(commonClass.isOnline()) {
+            mNotificationRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                        //  Log.d("xyzr22",commodity);
+                        Log.d(TAG, "this executes!");
+                        try {
+                            title = snapshot.getKey();
+                        } catch (Exception e) {
+                            Log.d(TAG, e.toString());
+                        }
+                        Log.d(TAG, "no problem here");
+                        body = snapshot.getValue(String.class);
+                        Log.d(TAG, "body gets value " + body + "title gets value " + title);
+                        tv.append("\n" + title + "\n" + body + "\n\n");
+                        Log.d(TAG, "append works fine");
+
                     }
-                    Log.d(TAG,"no problem here");
-                    body=snapshot.getValue(String.class);
-                    Log.d(TAG,"body gets value "+body+"title gets value "+title);
-                    tv.append("\n"+title+"\n"+body+"\n\n");
-                    Log.d(TAG,"append works fine");
 
                 }
 
-            }
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-            }
-        });
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+                }
+            });
+        }
+        else
+        {
+
+        }
         return v;
     }
+public void smsCreator()
+{
+
+}
 
     // TODO: Rename method, update argument and hook method into UI event
     public void onButtonPressed(Uri uri) {
