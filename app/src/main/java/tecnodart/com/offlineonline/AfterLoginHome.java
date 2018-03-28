@@ -28,7 +28,7 @@ import java.util.List;
 
 public class AfterLoginHome extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, NotificationsFragment.OnFragmentInteractionListener,WeatherForecastFragment.OnFragmentInteractionListener {
-
+private static final String TAG="message";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -46,7 +46,27 @@ public class AfterLoginHome extends AppCompatActivity
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
-        displaySelectedItem(R.id.home_fragment);
+
+       /* Bundle bundle = getIntent().getExtras();
+        Log.d(TAG,"bundle received");
+        if(bundle==null)
+        {
+            Log.d(TAG,"bundle is null");
+            displaySelectedItem(R.id.home_fragment);
+
+        }
+        else if(bundle.getString("fragment_name").equalsIgnoreCase("NotificationsFragment"))
+        {
+            Log.d(TAG,"else if called");
+            displaySelectedItem(R.id.notifications);
+
+        }
+        else
+        {
+            Log.d(TAG,"bundle.getString(\"fragment_name\") is "+bundle.getString("fragment_name"));
+            displaySelectedItem(R.id.home_fragment);
+
+        }*/
     }
 
     @Override
