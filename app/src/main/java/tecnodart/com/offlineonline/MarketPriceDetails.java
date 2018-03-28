@@ -1,20 +1,30 @@
 package tecnodart.com.offlineonline;
 
+import android.*;
 import android.annotation.SuppressLint;
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
+import android.location.Address;
+import android.location.Geocoder;
+import android.location.Location;
+import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.support.annotation.NonNull;
 import android.support.annotation.RequiresApi;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.telecom.Call;
 import android.telephony.SmsManager;
 import android.telephony.SmsMessage;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -28,6 +38,9 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -37,13 +50,33 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.squareup.picasso.Picasso;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 
 public class MarketPriceDetails extends AppCompatActivity {
 
+    
+    //Location Identifiers
+    double latitude,longitude;
 
+    private boolean mLocationPermissionGranted;
+    private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
+    private static final String KEY_LOCATION = "location";
+    // The geographical location where the device is currently located. That is, the last-known
+    // location retrieved by the Fused Location Provider.
+    private Location mLastKnownLocation;
+    // The entry point to the Fused Location Provider.
+    private FusedLocationProviderClient mFusedLocationProviderClient;
+    public static final int REQUEST_ID_MULTIPLE_PERMISSIONS = 1;
+    
+    //
+    
+    private  static  final String TAG = "market";
+
+    TextView stateTextView, address;
     int i=0, f1=0, f2=0;
     static int f3 = 0;
     ProgressDialog dialog;
@@ -52,13 +85,13 @@ public class MarketPriceDetails extends AppCompatActivity {
     ListView list;
     int flag=0;
     ArrayList<String> commm , pricc, remained, arrived ;
-    String[] cityname = { "select" , "Bihar", "Haryana","Karnataka", "Kerala", "Maharashtra" , "Manipur", };
-    String cit, add;
+   // String[] cityname = { "select" , "Bihar", "Haryana","Karnataka", "Kerala", "Maharashtra" , "Manipur", };
+    String pincode, add, state;
     static String msg;
-    Spinner cityn;
+    //Spinner cityn;
     private FirebaseUser mFirebaseUser;
     private DatabaseReference mDatabase;
-    Button nearShop;
+  //  Button nearShop;
     FirebaseDatabase database = FirebaseDatabase.getInstance();
     DatabaseReference myRef = database.getReference("users");
     @Override
@@ -66,27 +99,33 @@ public class MarketPriceDetails extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_market_price_details);
         Intent i = getIntent();
+        if(checkAndRequestPermissions()){
 
+        }else{
+            getLocationPermission();
+        }
         FirebaseAuth mFirebaseAuth = FirebaseAuth.getInstance();
         mFirebaseUser = mFirebaseAuth.getCurrentUser();
-        nearShop = findViewById(R.id.nearshop);
         commm = new ArrayList<>();
         pricc = new ArrayList<>();
         remained = new ArrayList<>();
         arrived = new ArrayList<>();
-
+        stateTextView = findViewById(R.id.state);
+/*
         nearShop.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 startActivity(new Intent(MarketPriceDetails.this , NearFPSAddress.class));
             }
         });
+*/
 
-        cit = cityname[0];
+   //     cit = cityname[0];
         list = findViewById(R.id.listdone);
+        address = findViewById(R.id.address);
 
         dt = new PriceDetail();
-        cityn = findViewById(R.id.cityn);
+/*        cityn = findViewById(R.id.cityn);
         ArrayAdapter aa = new ArrayAdapter(this,android.R.layout.simple_spinner_item,cityname);
         aa.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         //Setting the ArrayAdapter data on the Spinner
@@ -98,8 +137,12 @@ public class MarketPriceDetails extends AppCompatActivity {
                 cit = cityname[i];
                 if(cit.equals("select")){
                     return;
-                }
-                mDatabase= FirebaseDatabase.getInstance().getReference().child("fareprice").child(cit);
+                }*/
+
+        getLocationOffline();
+
+
+                mDatabase= FirebaseDatabase.getInstance().getReference().child("fareprice");
                 commm.clear();
                 pricc.clear();
                 remained.clear();
@@ -110,10 +153,34 @@ public class MarketPriceDetails extends AppCompatActivity {
                         "Loading. Please wait...", true);
                 if (isOnline()) {
 
+//Geocoder for state and city
 
+                    Geocoder geocoder = new Geocoder(this, Locale.ENGLISH);
+
+                    try {
+                        List<Address> addresses = geocoder.getFromLocation(latitude, longitude, 1);
+
+                        if (addresses.size() > 0) {
+
+
+
+                            //     city.setText(addresses.get(0).getLocality());
+                            state = addresses.get(0).getAdminArea();
+                            pincode =addresses.get(0).getPostalCode();
+                            stateTextView.setText(state);
+                            //    addr.setText(addresses.get(0).getAddressLine(0));
+
+                        } else {
+                            Toast.makeText(MarketPriceDetails.this , "Searching for address" , Toast.LENGTH_LONG).show();
+                        }
+
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        Toast.makeText(MarketPriceDetails.this , "Could not found" , Toast.LENGTH_LONG).show();
+                    }
                     Toast.makeText(MarketPriceDetails.this, "You are connected to Internet", Toast.LENGTH_SHORT).show();
 
-                mDatabase.addValueEventListener(new ValueEventListener() {
+                mDatabase.child(state).addValueEventListener(new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot ) {
                         commm.clear();
@@ -143,18 +210,35 @@ public class MarketPriceDetails extends AppCompatActivity {
                     }
 
                 });
+
+                    mDatabase= FirebaseDatabase.getInstance().getReference().child("fpsaddress").child(pincode).child("address");
+                    Toast.makeText(this, pincode, Toast.LENGTH_SHORT).show();
+                    mDatabase.addValueEventListener(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(DataSnapshot dataSnapshot ) {
+                            address.setText(dataSnapshot.getValue(String.class));
+                        }
+
+                        @Override
+                        public void onCancelled(DatabaseError databaseError) {
+
+                        }
+
+                    });
                 } else {
-                    sendSMS("7028499108", cit);
+                    String msg = "#ubimarket#" + latitude +"#"+longitude;
+
+
+                    sendSMS("8381033796", msg);
                     Toast.makeText(MarketPriceDetails.this, "You are not connected to Internet", Toast.LENGTH_SHORT).show();
 
                 }
-            }
-
+/*            }
             @Override
             public void onNothingSelected(AdapterView<?> adapterView) {
 
             }
-        });
+        });*/
 
 
 
@@ -175,9 +259,15 @@ public class MarketPriceDetails extends AppCompatActivity {
                 remained.clear();
                 arrived.clear();
                 ca.add(pricc , commm, remained, arrived);
-                String[] arr = message.split(" " );
+                String[] arr = message.split("#" );
+                if(arr[1].equals("ubierror")){
+                    Toast.makeText(MarketPriceDetails.this, "Service not available", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                if(!Objects.equals(arr[1], "ubimarket")){return;}
+                Toast.makeText(MarketPriceDetails.this , arr[2], Toast.LENGTH_SHORT).show();
 
-                for(int j=2,k=3,l=4,m=5 ;j< arr.length; j=j+5,k=k+5,l=l+5,m=m+5 ){
+                for(int j=2,k=3,l=4,m=5 ;j< 15; j=j+4,k=k+4,l=l+4,m=m+4 ){
 
                     commm.add(arr[j]);
                     pricc.add(arr[k]);
@@ -186,6 +276,8 @@ public class MarketPriceDetails extends AppCompatActivity {
 
 
                 }
+                stateTextView.setText(arr[18]);
+                address.setText(arr[19]);
                 ca = new customadapter(MarketPriceDetails.this, commm,pricc, remained , arrived);
                 list.setAdapter(ca);
 
@@ -319,6 +411,121 @@ public class MarketPriceDetails extends AppCompatActivity {
         }
 
 
+    }
+
+    private void getLocationOffline()
+    {
+        Log.d(TAG,"getLocationOffline exectued!");
+        LocationManager lm;
+        Log.d(TAG,"#1");
+        lm = (LocationManager) this .getSystemService(Context.LOCATION_SERVICE);
+        Log.d(TAG,"#2");
+        Location net_loc = null;
+        Log.d(TAG,"#3");
+        try {
+            Log.d(TAG,"#4");
+            // lm.requestLocationUpdates();
+            net_loc = lm.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+            if(net_loc==null)
+            {
+                Log.d(TAG,"net_loc is null");
+            }
+            Log.d(TAG,"#5");
+            latitude=net_loc.getLatitude();
+            // latitude=18.5614668;
+            Log.d(TAG,"#6");
+            longitude=net_loc.getLongitude();
+            // longitude=73.9324918;
+            Log.d(TAG,"#7");
+        }catch(SecurityException s)
+        {
+            Log.d(TAG,"Permission Denied");
+        }
+    }
+    /**
+     * Gets the current location of the device, and positions the map's camera.
+     */
+/*    private void getDeviceLocation() {
+        *//*
+         * Get the best and most recent location of the device, which may be null in rare
+         * cases when a location is not available.
+         *//*
+        Log.d(TAG,"getDeviceLocation() executed");
+
+        try {
+            if (mLocationPermissionGranted) {
+                Task<Location> locationResult = mFusedLocationProviderClient.getLastLocation();
+                locationResult.addOnCompleteListener(this  , new OnCompleteListener<Location>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Location> task) {
+                        if (task.isSuccessful()) {
+                            // Set the map's camera position to the current location of the device.
+                            mLastKnownLocation = task.getResult();
+                            latitude=mLastKnownLocation.getLatitude();
+                            longitude=mLastKnownLocation.getLongitude();
+
+                        } else {
+                            Log.d(TAG, "Current location is null. Using defaults.");
+
+
+                        }
+                    }
+                });
+            }
+        } catch (SecurityException e)  {
+            Log.e("Exception: %s", e.getMessage());
+        }
+    }*/
+    private void getLocationPermission() {
+        /*
+         * Request location permission, so that we can get the location of the
+         * device. The result of the permission request is handled by a callback,
+         * onRequestPermissionsResult.
+         */
+        Log.d(TAG,"getLocationPermission executed");
+        if (ContextCompat.checkSelfPermission(this  ,
+                android.Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED) {
+            mLocationPermissionGranted = true;
+        } else {
+            ActivityCompat.requestPermissions(this  ,
+                    new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
+                    PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
+        }
+    }
+
+    private  boolean checkAndRequestPermissions() {
+        int permissionSendMessage = ContextCompat.checkSelfPermission(this ,
+                android.Manifest.permission.SEND_SMS);
+
+        int receiveSMS = ContextCompat.checkSelfPermission(this ,
+                android.Manifest.permission.RECEIVE_SMS);
+
+        int readSMS = ContextCompat.checkSelfPermission(this ,
+                android.Manifest.permission.READ_SMS);
+        int getLocation=ContextCompat.checkSelfPermission(this , android.Manifest.permission.ACCESS_FINE_LOCATION);
+        List<String> listPermissionsNeeded = new ArrayList<>();
+
+        if (receiveSMS != PackageManager.PERMISSION_GRANTED) {
+            listPermissionsNeeded.add(android.Manifest.permission.RECEIVE_MMS);
+        }
+        if (readSMS != PackageManager.PERMISSION_GRANTED) {
+            listPermissionsNeeded.add(android.Manifest.permission.READ_SMS);
+        }
+        if (permissionSendMessage != PackageManager.PERMISSION_GRANTED) {
+            listPermissionsNeeded.add(android.Manifest.permission.SEND_SMS);
+        }
+        if(getLocation!=PackageManager.PERMISSION_GRANTED)
+        {
+            listPermissionsNeeded.add(android.Manifest.permission.ACCESS_FINE_LOCATION);
+        }
+        if (!listPermissionsNeeded.isEmpty()) {
+            ActivityCompat.requestPermissions(this  ,
+                    listPermissionsNeeded.toArray(new String[listPermissionsNeeded.size()]),
+                    REQUEST_ID_MULTIPLE_PERMISSIONS);
+            return false;
+        }
+        return true;
     }
 
 }
