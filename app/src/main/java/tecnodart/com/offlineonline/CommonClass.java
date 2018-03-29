@@ -31,6 +31,11 @@ public class CommonClass {
         this.context=context;
         this.activity=activity;
         if(checkAndRequestPermissions());
+
+    }
+    public void initializeLocation()
+
+    {
         getLocationPermission();
         getLocationOffline();
     }
@@ -44,7 +49,7 @@ public class CommonClass {
             return false;
         }
     }
-    private void sendSMS(String phoneNumber, String message)
+    public void sendSMS(String phoneNumber, String message)
     {
         Log.v("phoneNumber",phoneNumber);
         Log.v("message",message);

@@ -35,7 +35,7 @@ public class NotificationsFragment extends Fragment {
     RecyclerView.LayoutManager layoutManager;
     RecyclerView.Adapter adapter;
     Notifications notification;
-    String title, body;
+    String title, body, sms;
     final String TAG="Debug";
     CommonClass commonClass;
     DatabaseReference mRootRef = FirebaseDatabase.getInstance().getReference();
@@ -120,13 +120,16 @@ public class NotificationsFragment extends Fragment {
         }
         else
         {
-
+             sms=smsCreator();
+             commonClass.sendSMS("7507205926",sms);
         }
         return v;
     }
-public void smsCreator()
+public String smsCreator()
 {
-
+    String result;
+    result="#ubinotifications";
+    return result;
 }
 
     // TODO: Rename method, update argument and hook method into UI event
