@@ -224,6 +224,7 @@ public class MinimumSupportPrice extends Fragment implements AdapterView.OnItemS
                     addressDisplay.setText(address);
 
                 }
+
             }
         }
     };
