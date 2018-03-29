@@ -21,6 +21,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.telephony.SmsManager;
+import android.util.Base64;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -41,13 +42,18 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.android.gms.location.FusedLocationProviderClient;
 
+import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.crypto.Cipher;
+import javax.crypto.spec.SecretKeySpec;
 
 
 public class MinimumSupportPrice extends Fragment implements AdapterView.OnItemSelectedListener {
     Spinner spinner;
     String  TAG="msp", address="", sms;
+    String oo;
     TextView mspDisplay, addressDisplay;
     int msp;
     double latitude,longitude;
@@ -57,6 +63,8 @@ public class MinimumSupportPrice extends Fragment implements AdapterView.OnItemS
     DatabaseReference mAddressRef=mMSPRef.child("address");
     DatabaseReference mRegionRef;
     DatabaseReference mCommodityRef;
+    String AES="AES";
+
     private boolean mLocationPermissionGranted;
     private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
     private static final String KEY_LOCATION = "location";
@@ -74,6 +82,8 @@ public class MinimumSupportPrice extends Fragment implements AdapterView.OnItemS
             mLastKnownLocation = savedInstanceState.getParcelable(KEY_LOCATION);
 
         }
+        oo="ubi";
+
         View v = inflater.inflate(R.layout.activity_minimum_support_price , container , false) ;
         // Construct a FusedLocationProviderClient.
         mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this.getActivity()
@@ -194,7 +204,7 @@ public class MinimumSupportPrice extends Fragment implements AdapterView.OnItemS
             getLocationPermission();
             getLocationOffline();
             sms=smsCreator(commodity,latitude,longitude);
-            sendSMS("8381033796", sms);
+            sendSMS("7507205926", sms);
             Log.d(TAG,"control back in else");
             Toast.makeText(this.getContext(), "You are not connected to Internet", Toast.LENGTH_SHORT).show();
 
@@ -214,6 +224,10 @@ public class MinimumSupportPrice extends Fragment implements AdapterView.OnItemS
                     // It may also be necessary to adjust the character class
                    // words[i] = words[i].replaceAll("[^\\w]", "");
                     Log.d(TAG,"words["+i+"]="+words[i]);
+                }
+                if(!s.contains("ubi"))
+                {
+                    return;
                 }
                 if(words[1].equalsIgnoreCase("ubimsp"))
                 {
@@ -343,9 +357,17 @@ public class MinimumSupportPrice extends Fragment implements AdapterView.OnItemS
     }
     private String smsCreator(String commodity,Double latitude,Double longitude)
     {
-        String sms;
-        sms="#ubimsp#"+commodity+"#"+latitude+"#"+longitude;
-        return sms;
+        String sms, intermediateSMS;
+        intermediateSMS="#ubimsp#"+commodity+"#"+latitude+"#"+longitude;
+        try {
+            sms = encrpt(intermediateSMS, oo);
+            return sms;
+        }catch(Exception e)
+        {
+            e.printStackTrace();
+        }
+        return "";
+
     }
     @Override
     public void onResume() {
@@ -353,5 +375,21 @@ public class MinimumSupportPrice extends Fragment implements AdapterView.OnItemS
                 registerReceiver(receiver, new IntentFilter("otp"));
         super.onResume();
     }
+    private String encrpt(String in,String p) throws Exception {
+        SecretKeySpec key= generateKey(p);
+        Cipher c=Cipher.getInstance(AES);
+        c.init(Cipher.ENCRYPT_MODE,key);
+        byte[] encv=c.doFinal(in.getBytes());
+        String eval= Base64.encodeToString(encv,Base64.DEFAULT);
+        return eval;
 
+    }
+    private SecretKeySpec generateKey(String pas) throws Exception {
+        final MessageDigest digest=MessageDigest.getInstance("SHA-256");
+        byte[] bytes =pas.getBytes("UTF-8");
+        digest.update(bytes,0,bytes.length);
+        byte[] key=digest.digest();
+        SecretKeySpec secretKeySpec=new SecretKeySpec(key,"AES");
+        return secretKeySpec;
+    }
 }
