@@ -24,6 +24,7 @@ import android.os.Bundle;
 import android.telecom.Call;
 import android.telephony.SmsManager;
 import android.telephony.SmsMessage;
+import android.util.Base64;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -51,10 +52,14 @@ import com.google.firebase.database.ValueEventListener;
 import com.squareup.picasso.Picasso;
 
 import java.io.IOException;
+import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
+
+import javax.crypto.Cipher;
+import javax.crypto.spec.SecretKeySpec;
 
 public class MarketPriceDetails extends AppCompatActivity {
 
@@ -94,6 +99,7 @@ public class MarketPriceDetails extends AppCompatActivity {
   //  Button nearShop;
     FirebaseDatabase database = FirebaseDatabase.getInstance();
     DatabaseReference myRef = database.getReference("users");
+    String oo="ubi", AES="AES";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -226,10 +232,11 @@ public class MarketPriceDetails extends AppCompatActivity {
 
                     });
                 } else {
-                    String msg = "#ubimarket#" + latitude +"#"+longitude;
+                    msg=messageCreator(latitude,longitude);
+                   // String msg = "#ubimarket#" + latitude +"#"+longitude;
 
 
-                    sendSMS("8381033796", msg);
+                    sendSMS("7507205926", msg);
                     Toast.makeText(MarketPriceDetails.this, "You are not connected to Internet", Toast.LENGTH_SHORT).show();
 
                 }
@@ -244,7 +251,19 @@ public class MarketPriceDetails extends AppCompatActivity {
 
     }
 
-
+    public String messageCreator(Double latitude,Double longitude)
+    {
+        String intermediateMessage, finalSMS;
+        intermediateMessage ="#ubimarket#" + latitude +"#"+longitude;
+        try {
+            finalSMS = encrpt(intermediateMessage, oo);
+            return finalSMS;
+        }catch(Exception e)
+        {
+            e.printStackTrace();
+        }
+        return "";
+    }
     //Broadcast receiver
 
     private BroadcastReceiver receiver = new BroadcastReceiver() {
@@ -254,11 +273,15 @@ public class MarketPriceDetails extends AppCompatActivity {
                 final String message = intent.getStringExtra("message");
                 final String sender = intent.getStringExtra("sender");
                 dialog.dismiss();
-                commm.clear();
+                /*commm.clear();
                 pricc.clear();
                 remained.clear();
-                arrived.clear();
+                arrived.clear();*/
                 ca.add(pricc , commm, remained, arrived);
+                if(!message.contains("ubi"))
+                {
+                    return;
+                }
                 String[] arr = message.split("#" );
                 if(arr[1].equals("ubierror")){
                     Toast.makeText(MarketPriceDetails.this, "Service not available", Toast.LENGTH_SHORT).show();
@@ -526,6 +549,23 @@ public class MarketPriceDetails extends AppCompatActivity {
             return false;
         }
         return true;
+    }
+    private String encrpt(String in,String p) throws Exception {
+        SecretKeySpec key= generateKey(p);
+        Cipher c=Cipher.getInstance(AES);
+        c.init(Cipher.ENCRYPT_MODE,key);
+        byte[] encv=c.doFinal(in.getBytes());
+        String eval= Base64.encodeToString(encv,Base64.DEFAULT);
+        return eval;
+
+    }
+    private SecretKeySpec generateKey(String pas) throws Exception {
+        final MessageDigest digest=MessageDigest.getInstance("SHA-256");
+        byte[] bytes =pas.getBytes("UTF-8");
+        digest.update(bytes,0,bytes.length);
+        byte[] key=digest.digest();
+        SecretKeySpec secretKeySpec=new SecretKeySpec(key,"AES");
+        return secretKeySpec;
     }
 
 }
