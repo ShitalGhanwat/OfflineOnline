@@ -13,7 +13,7 @@ import android.util.Log;
  */
 
 public class MySMSBroadCastReceiver extends BroadcastReceiver {
-    private static final String TAG="msp";
+    private static final String TAG="market";
     @Override
     public void onReceive(Context context, Intent intent)
     {

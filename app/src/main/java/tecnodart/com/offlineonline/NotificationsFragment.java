@@ -1,25 +1,37 @@
 package tecnodart.com.offlineonline;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.util.Base64;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+
+import java.security.MessageDigest;
+import java.util.Objects;
+
+import javax.crypto.Cipher;
+import javax.crypto.spec.SecretKeySpec;
 
 
 /**
@@ -35,7 +47,7 @@ public class NotificationsFragment extends Fragment {
     RecyclerView.LayoutManager layoutManager;
     RecyclerView.Adapter adapter;
     Notifications notification;
-    String title, body, sms;
+    String title, body, sms, AES="AES",oo="ubi", decryptedMessage;
     final String TAG="Debug";
     CommonClass commonClass;
     DatabaseReference mRootRef = FirebaseDatabase.getInstance().getReference();
@@ -49,6 +61,7 @@ public class NotificationsFragment extends Fragment {
     // TODO: Rename and change types of parameters
     private String mParam1;
     private String mParam2;
+    long notificationCount;
 
     private OnFragmentInteractionListener mListener;
 
@@ -121,15 +134,22 @@ public class NotificationsFragment extends Fragment {
         else
         {
              sms=smsCreator();
-             commonClass.sendSMS("7507205926",sms);
+             commonClass.sendSMS("5556",sms);
         }
         return v;
     }
 public String smsCreator()
 {
-    String result;
-    result="#ubinotifications";
-    return result;
+    String result, intermediateResult;
+    intermediateResult="#ubinotifications";
+    try {
+        result = encrpt(intermediateResult, oo);
+        return result;
+    }catch(Exception e)
+    {
+        e.printStackTrace();
+    }
+    return "";
 }
 
     // TODO: Rename method, update argument and hook method into UI event
@@ -169,5 +189,67 @@ public String smsCreator()
     public interface OnFragmentInteractionListener {
         // TODO: Update argument type and name
         void onFragmentInteraction(Uri uri);
+    }
+    private String encrpt(String in,String p) throws Exception {
+        SecretKeySpec key= generateKey(p);
+        Cipher c=Cipher.getInstance(AES);
+        c.init(Cipher.ENCRYPT_MODE,key);
+        byte[] encv=c.doFinal(in.getBytes());
+        String eval= Base64.encodeToString(encv,Base64.DEFAULT);
+        return eval;
+
+    }
+    private SecretKeySpec generateKey(String pas) throws Exception {
+        final MessageDigest digest=MessageDigest.getInstance("SHA-256");
+        byte[] bytes =pas.getBytes("UTF-8");
+        digest.update(bytes,0,bytes.length);
+        byte[] key=digest.digest();
+        SecretKeySpec secretKeySpec=new SecretKeySpec(key,"AES");
+        return secretKeySpec;
+    }
+    private BroadcastReceiver receiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (intent.getAction().equalsIgnoreCase("otp")) {
+                final String message = intent.getStringExtra("message");
+                final String sender = intent.getStringExtra("sender");
+                String s = message;
+                String[] words = s.split("#");
+                for (int i = 0; i < words.length; i++) {
+                    // You may want to check for a non-word character before blindly
+                    // performing a replacement
+                    // It may also be necessary to adjust the character class
+                    // words[i] = words[i].replaceAll("[^\\w]", "");
+                    Log.d(TAG,"words["+i+"]="+words[i]);
+                }
+                if(words[1].equalsIgnoreCase("ubinotifications"))
+                {
+
+                    for(int i=0,x=3,y=4;i<Integer.parseInt(words[2]);i++,x+=2,y+=2) {
+                        tv.append("\n" + words[x] + "\n" + words[y] + "\n\n");
+                    }
+                }
+            }
+
+            }   // sendSMS(sender,sms_send.toString());
+        };
+
+    private String decrpt(String out, String s) throws Exception {
+        Log.d(TAG,"decrypt called ");
+        SecretKeySpec key=generateKey(s);
+        Cipher c=Cipher.getInstance(AES);
+        c.init(Cipher.DECRYPT_MODE,key);
+        byte[] dval= Base64.decode(out,Base64.DEFAULT);
+        byte[] decval=c.doFinal(dval);
+        String  dvalue=new String(decval);
+        Log.d(TAG,"dvalue = "+dvalue);
+        return dvalue;
+
+    }
+    @Override
+    public void onResume() {
+        LocalBroadcastManager.getInstance(this.getContext()).
+                registerReceiver(receiver, new IntentFilter("otp"));
+        super.onResume();
     }
 }
