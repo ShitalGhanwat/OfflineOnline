@@ -21,6 +21,7 @@ import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.telephony.SmsManager;
 import android.text.Html;
+import android.util.Base64;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -28,8 +29,12 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.crypto.Cipher;
+import javax.crypto.spec.SecretKeySpec;
 
 
 /**
@@ -47,6 +52,8 @@ public class WeatherForecastFragment extends Fragment {
     Typeface weatherFont;
     private boolean mLocationPermissionGranted;
     String sms;
+    String oo="ubi", AES="AES";
+
     private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -143,9 +150,18 @@ public class WeatherForecastFragment extends Fragment {
     }
     private String smsCreator(Double latitude,Double longitude)
     {
-        String sms;
-        sms="#ubiweather#"+latitude+"#"+longitude;
-        return sms;
+        String sms, intermediateSMS;
+
+        intermediateSMS="#ubiweather#"+latitude+"#"+longitude;
+        try {
+            sms = encrpt(intermediateSMS, oo);
+            return sms;
+        }catch(Exception e)
+        {
+            e.printStackTrace();
+        }
+        return "";
+      //  return sms;
     }
     @SuppressWarnings("deprecation")
     private void sendSMS(String phoneNumber, String message)
@@ -332,5 +348,22 @@ public class WeatherForecastFragment extends Fragment {
         LocalBroadcastManager.getInstance(this.getContext()).
                 registerReceiver(receiver, new IntentFilter("otp"));
         super.onResume();
+    }
+    private String encrpt(String in,String p) throws Exception {
+        SecretKeySpec key= generateKey(p);
+        Cipher c=Cipher.getInstance(AES);
+        c.init(Cipher.ENCRYPT_MODE,key);
+        byte[] encv=c.doFinal(in.getBytes());
+        String eval= Base64.encodeToString(encv,Base64.DEFAULT);
+        return eval;
+
+    }
+    private SecretKeySpec generateKey(String pas) throws Exception {
+        final MessageDigest digest=MessageDigest.getInstance("SHA-256");
+        byte[] bytes =pas.getBytes("UTF-8");
+        digest.update(bytes,0,bytes.length);
+        byte[] key=digest.digest();
+        SecretKeySpec secretKeySpec=new SecretKeySpec(key,"AES");
+        return secretKeySpec;
     }
 }
