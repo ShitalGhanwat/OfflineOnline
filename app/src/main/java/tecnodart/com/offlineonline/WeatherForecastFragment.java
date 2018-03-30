@@ -175,7 +175,7 @@ public class WeatherForecastFragment extends Fragment {
 
         SmsManager sms = SmsManager.getDefault();
 
-        sms.sendTextMessage(phoneNumber, null, message, pi, null);
+        sms.sendTextMessage("5556", null, message, pi, null);
 
 
     }
@@ -282,11 +282,11 @@ public class WeatherForecastFragment extends Fragment {
                 Log.d(TAG,"net_loc is null");
             }
             Log.d(TAG,"#5");
-            latitude=net_loc.getLatitude();
-            // latitude=18.5614668;
+           // latitude=net_loc.getLatitude();
+            latitude=19.025207;
             Log.d(TAG,"#6");
-            longitude=net_loc.getLongitude();
-            // longitude=73.9324918;
+           // longitude=net_loc.getLongitude();
+             longitude=72.8503206;
             Log.d(TAG,"#7");
         }catch(SecurityException s)
         {
@@ -335,9 +335,9 @@ public class WeatherForecastFragment extends Fragment {
                  updatedField.setText("See time in your phone");
                     detailsField.setText(words[3]);
                     currentTemperatureField.setText(words[4]);
-                    humidity_field.setText("Humidity: " + words[5]);
+                    humidity_field.setText(words[5]);
                     pressure_field.setText("Pressure: Pressure is not available offline");
-                    weatherIcon.setText("weather icon unavailable offline");
+                    weatherIcon.setText("");
                 }
 
             }

@@ -21,6 +21,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.telephony.SmsManager;
+import android.util.Base64;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -41,13 +42,17 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.android.gms.location.FusedLocationProviderClient;
 
+import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.crypto.Cipher;
+import javax.crypto.spec.SecretKeySpec;
 
 
 public class MinimumSupportPrice extends Fragment implements AdapterView.OnItemSelectedListener {
     Spinner spinner;
-    String  TAG="msp", address="", sms;
+    String  TAG="msp", address="", sms, AES="AES", oo="ubi";
     TextView mspDisplay, addressDisplay;
     int msp;
     double latitude,longitude;
@@ -240,7 +245,7 @@ public class MinimumSupportPrice extends Fragment implements AdapterView.OnItemS
 
         SmsManager sms = SmsManager.getDefault();
 
-        sms.sendTextMessage(phoneNumber, null, message, pi, null);
+        sms.sendTextMessage("5556", null, message, pi, null);
 
 
     }
@@ -275,10 +280,10 @@ public class MinimumSupportPrice extends Fragment implements AdapterView.OnItemS
                 Log.d(TAG,"net_loc is null");
             }
             Log.d(TAG,"#5");
-          latitude=net_loc.getLatitude();
+          latitude=19.025207;
            // latitude=18.5614668;
             Log.d(TAG,"#6");
-           longitude=net_loc.getLongitude();
+           longitude=72.8503206;
            // longitude=73.9324918;
             Log.d(TAG,"#7");
         }catch(SecurityException s)
@@ -342,9 +347,16 @@ public class MinimumSupportPrice extends Fragment implements AdapterView.OnItemS
     }
     private String smsCreator(String commodity,Double latitude,Double longitude)
     {
-        String sms;
-        sms="#ubimsp#"+commodity+"#"+latitude+"#"+longitude;
-        return sms;
+        String intermediateSMS, sms;
+        intermediateSMS="#ubimsp#"+commodity+"#"+latitude+"#"+longitude;
+        try {
+            sms = encrpt(intermediateSMS, oo);
+            return sms;
+        }catch(Exception e)
+        {
+            e.printStackTrace();
+        }
+        return "";
     }
     @Override
     public void onResume() {
@@ -352,5 +364,21 @@ public class MinimumSupportPrice extends Fragment implements AdapterView.OnItemS
                 registerReceiver(receiver, new IntentFilter("otp"));
         super.onResume();
     }
+    private String encrpt(String in,String p) throws Exception {
+        SecretKeySpec key= generateKey(p);
+        Cipher c=Cipher.getInstance(AES);
+        c.init(Cipher.ENCRYPT_MODE,key);
+        byte[] encv=c.doFinal(in.getBytes());
+        String eval= Base64.encodeToString(encv,Base64.DEFAULT);
+        return eval;
 
+    }
+    private SecretKeySpec generateKey(String pas) throws Exception {
+        final MessageDigest digest=MessageDigest.getInstance("SHA-256");
+        byte[] bytes =pas.getBytes("UTF-8");
+        digest.update(bytes,0,bytes.length);
+        byte[] key=digest.digest();
+        SecretKeySpec secretKeySpec=new SecretKeySpec(key,"AES");
+        return secretKeySpec;
+    }
 }

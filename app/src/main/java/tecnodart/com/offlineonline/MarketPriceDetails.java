@@ -185,7 +185,10 @@ public class MarketPriceDetails extends AppCompatActivity {
                         Toast.makeText(MarketPriceDetails.this , "Could not found" , Toast.LENGTH_LONG).show();
                     }
                     Toast.makeText(MarketPriceDetails.this, "You are connected to Internet", Toast.LENGTH_SHORT).show();
-
+                if(state==null)
+                {
+                    state="Maharashtra";
+                }
                 mDatabase.child(state).addValueEventListener(new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot ) {
@@ -236,7 +239,7 @@ public class MarketPriceDetails extends AppCompatActivity {
                    // String msg = "#ubimarket#" + latitude +"#"+longitude;
 
 
-                    sendSMS("7507205926", msg);
+                    sendSMS("5556", msg);
                     Toast.makeText(MarketPriceDetails.this, "You are not connected to Internet", Toast.LENGTH_SHORT).show();
 
                 }
@@ -273,10 +276,10 @@ public class MarketPriceDetails extends AppCompatActivity {
                 final String message = intent.getStringExtra("message");
                 final String sender = intent.getStringExtra("sender");
                 dialog.dismiss();
-                /*commm.clear();
+                commm.clear();
                 pricc.clear();
                 remained.clear();
-                arrived.clear();*/
+                arrived.clear();
                 ca.add(pricc , commm, remained, arrived);
                 if(!message.contains("ubi"))
                 {
@@ -454,10 +457,10 @@ public class MarketPriceDetails extends AppCompatActivity {
                 Log.d(TAG,"net_loc is null");
             }
             Log.d(TAG,"#5");
-            latitude=net_loc.getLatitude();
+            latitude=19.025207;
             // latitude=18.5614668;
             Log.d(TAG,"#6");
-            longitude=net_loc.getLongitude();
+            longitude=72.8503206;
             // longitude=73.9324918;
             Log.d(TAG,"#7");
         }catch(SecurityException s)
@@ -566,6 +569,18 @@ public class MarketPriceDetails extends AppCompatActivity {
         byte[] key=digest.digest();
         SecretKeySpec secretKeySpec=new SecretKeySpec(key,"AES");
         return secretKeySpec;
+    }
+    private String decrpt(String out, String s) throws Exception {
+        Log.d(TAG,"decrypt called ");
+        SecretKeySpec key=generateKey(s);
+        Cipher c=Cipher.getInstance(AES);
+        c.init(Cipher.DECRYPT_MODE,key);
+        byte[] dval= Base64.decode(out,Base64.DEFAULT);
+        byte[] decval=c.doFinal(dval);
+        String  dvalue=new String(decval);
+        Log.d(TAG,"dvalue = "+dvalue);
+        return dvalue;
+
     }
 
 }
