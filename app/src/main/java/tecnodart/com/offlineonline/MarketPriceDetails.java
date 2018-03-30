@@ -229,7 +229,7 @@ public class MarketPriceDetails extends AppCompatActivity {
                     String msg = "#ubimarket#" + latitude +"#"+longitude;
 
 
-                    sendSMS("8381033796", msg);
+                    sendSMS("7507205926", msg);
                     Toast.makeText(MarketPriceDetails.this, "You are not connected to Internet", Toast.LENGTH_SHORT).show();
 
                 }

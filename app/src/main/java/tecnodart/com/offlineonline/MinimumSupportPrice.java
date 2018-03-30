@@ -194,7 +194,7 @@ public class MinimumSupportPrice extends Fragment implements AdapterView.OnItemS
             getLocationPermission();
             getLocationOffline();
             sms=smsCreator(commodity,latitude,longitude);
-            sendSMS("8381033796", sms);
+            sendSMS("7", sms);
             Log.d(TAG,"control back in else");
             Toast.makeText(this.getContext(), "You are not connected to Internet", Toast.LENGTH_SHORT).show();
 
