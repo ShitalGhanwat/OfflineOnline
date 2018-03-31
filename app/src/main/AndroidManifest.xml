@@ -58,7 +58,6 @@
             </intent-filter>
         </service>
 
-        <activity android:name=".NearFPSAddress"></activity>
     </application>
 
 </manifest>

@@ -2,8 +2,10 @@ package tecnodart.com.offlineonline;
 
 import android.*;
 import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.graphics.Typeface;
 import android.location.Location;
@@ -16,8 +18,10 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.content.LocalBroadcastManager;
 import android.telephony.SmsManager;
 import android.text.Html;
+import android.util.Base64;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -25,8 +29,12 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.crypto.Cipher;
+import javax.crypto.spec.SecretKeySpec;
 
 
 /**
@@ -44,6 +52,8 @@ public class WeatherForecastFragment extends Fragment {
     Typeface weatherFont;
     private boolean mLocationPermissionGranted;
     String sms;
+    String oo="ubi", AES="AES";
+
     private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -130,7 +140,7 @@ public class WeatherForecastFragment extends Fragment {
                 getLocationPermission();
                 getLocationOffline();
                 sms=smsCreator(latitude,longitude);
-                sendSMS("7028499108", sms);
+                sendSMS("7507205926", sms);
                 Log.d(TAG,"control back in else");
                 Toast.makeText(this.getContext(), "You are not connected to Internet", Toast.LENGTH_SHORT).show();
 
@@ -140,9 +150,18 @@ public class WeatherForecastFragment extends Fragment {
     }
     private String smsCreator(Double latitude,Double longitude)
     {
-        String sms;
-        sms="#ubiweather#"+latitude+"#"+longitude;
-        return sms;
+        String sms, intermediateSMS;
+
+        intermediateSMS="#ubiweather#"+latitude+"#"+longitude;
+        try {
+            sms = encrpt(intermediateSMS, oo);
+            return sms;
+        }catch(Exception e)
+        {
+            e.printStackTrace();
+        }
+        return "";
+      //  return sms;
     }
     @SuppressWarnings("deprecation")
     private void sendSMS(String phoneNumber, String message)
@@ -156,7 +175,7 @@ public class WeatherForecastFragment extends Fragment {
 
         SmsManager sms = SmsManager.getDefault();
 
-        sms.sendTextMessage(phoneNumber, null, message, pi, null);
+        sms.sendTextMessage("5556", null, message, pi, null);
 
 
     }
@@ -263,11 +282,11 @@ public class WeatherForecastFragment extends Fragment {
                 Log.d(TAG,"net_loc is null");
             }
             Log.d(TAG,"#5");
-            latitude=net_loc.getLatitude();
-            // latitude=18.5614668;
+           // latitude=net_loc.getLatitude();
+            latitude=19.025207;
             Log.d(TAG,"#6");
-            longitude=net_loc.getLongitude();
-            // longitude=73.9324918;
+           // longitude=net_loc.getLongitude();
+             longitude=72.8503206;
             Log.d(TAG,"#7");
         }catch(SecurityException s)
         {
@@ -293,5 +312,58 @@ public class WeatherForecastFragment extends Fragment {
                     new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
                     PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
         }
+    }
+    private BroadcastReceiver receiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (intent.getAction().equalsIgnoreCase("otp")) {
+                final String message = intent.getStringExtra("message");
+                final String sender = intent.getStringExtra("sender");
+                String s = message;
+                String[] words = s.split("#");
+                for (int i = 0; i < words.length; i++) {
+                    // You may want to check for a non-word character before blindly
+                    // performing a replacement
+                    // It may also be necessary to adjust the character class
+                    // words[i] = words[i].replaceAll("[^\\w]", "");
+                    Log.d(TAG,"words["+i+"]="+words[i]);
+                }
+                if(words[1].equalsIgnoreCase("ubiweather"))
+                {
+
+                    cityField.setText(words[2]);
+                 updatedField.setText("See time in your phone");
+                    detailsField.setText(words[3]);
+                    currentTemperatureField.setText(words[4]);
+                    humidity_field.setText(words[5]);
+                    pressure_field.setText("Pressure: Pressure is not available offline");
+                    weatherIcon.setText("");
+                }
+
+            }
+        }
+    };
+    @Override
+    public void onResume() {
+        LocalBroadcastManager.getInstance(this.getContext()).
+                registerReceiver(receiver, new IntentFilter("otp"));
+        super.onResume();
+    }
+    private String encrpt(String in,String p) throws Exception {
+        SecretKeySpec key= generateKey(p);
+        Cipher c=Cipher.getInstance(AES);
+        c.init(Cipher.ENCRYPT_MODE,key);
+        byte[] encv=c.doFinal(in.getBytes());
+        String eval= Base64.encodeToString(encv,Base64.DEFAULT);
+        return eval;
+
+    }
+    private SecretKeySpec generateKey(String pas) throws Exception {
+        final MessageDigest digest=MessageDigest.getInstance("SHA-256");
+        byte[] bytes =pas.getBytes("UTF-8");
+        digest.update(bytes,0,bytes.length);
+        byte[] key=digest.digest();
+        SecretKeySpec secretKeySpec=new SecretKeySpec(key,"AES");
+        return secretKeySpec;
     }
 }

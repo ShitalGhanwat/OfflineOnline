@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.support.v4.app.NotificationCompat;
+import android.util.Log;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -17,7 +18,7 @@ import com.google.firebase.messaging.RemoteMessage;
 
 public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
-    private static final String TAG = "FirebaseMessagingServce";
+    private static final String TAG = "message";
     private FirebaseUser mFirebaseUser;
 
     @Override
@@ -36,8 +37,13 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         if (mFirebaseUser != null) {
             useridstr = mFirebaseUser.getUid();
         }
-        String keystr = "iiii";
-        FirebaseDatabase.getInstance().getReference().child("notifications").child(keystr).setValue(notificationBody);
+        String keystr = notificationTitle;
+        FirebaseDatabase.getInstance().getReference().child("notifications").child(notificationTitle).setValue(notificationBody);
+        Log.d(TAG,"intent called");
+       // Intent i = new Intent(MyFirebaseMessagingService.this, AfterLoginHome.class);
+        //i.putExtra("fragment_name", "NotificationsFragment");
+
+      //  i.putExtra("name", "value");
         // Also if you intend on generating your own notifications as a result of a received FCM
         // message, here is where that should be initiated. See sendNotification method below.
         sendNotification(notificationTitle, notificationBody);
