@@ -225,9 +225,9 @@ public String smsCreator()
                 if(words[1].equalsIgnoreCase("ubinotifications"))
                 {
 
-                    for(int i=0,x=3,y=4;i<Integer.parseInt(words[2]);i++,x+=2,y+=2) {
-                        tv.append("\n" + words[x] + "\n" + words[y] + "\n\n");
-                    }
+
+                        tv.append("\n" + words[2] + "\n" + words[3] + "\n\n");
+
                 }
             }
 
